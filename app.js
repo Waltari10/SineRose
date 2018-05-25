@@ -6,6 +6,10 @@ var chroma = require('chroma-js')
 let width = window.innerWidth / 2
 let height = window.innerHeight / 2
 
+function getRandHex() {
+  return '#' + Math.floor(Math.random() * 16777215).toString(16);
+}
+
 function resizeCanvas() {
   width = window.innerWidth / 2
   height = window.innerHeight / 2
@@ -22,7 +26,7 @@ window.addEventListener('resize', resizeCanvas, false)
  * @param {any} amplitude length of each petal
  * 
  */
-function drawFlower (delTheta, k, amplitude) {
+function drawFlower (delTheta, k, amplitude, color) {
 
   const arr = new Array(Math.ceil(2 * Math.PI / delTheta)).fill(0).map((val, i) => ((2 * Math.PI * delTheta) * i))
 
@@ -40,7 +44,7 @@ function drawFlower (delTheta, k, amplitude) {
 
     ctx.beginPath()
     ctx.lineWidth = 2;
-    ctx.strokeStyle = 'red'
+    ctx.strokeStyle = color
 
     if (lastX && lastY) {
       ctx.moveTo(lastX, lastY)
@@ -55,6 +59,8 @@ function drawFlower (delTheta, k, amplitude) {
 
 var steps = 0
 
+const color = getRandHex()
+
 function step(timestamp) {
   ctx.fillStyle = 'white'
   ctx.fillRect(-width, -height, canvas.width, canvas.height)
@@ -66,7 +72,7 @@ function step(timestamp) {
   }
   
   ctx.rotate(0.005)
-  drawFlower(0.005, 4, amplitude)
+  drawFlower(0.005, 4, amplitude, color)
   window.requestAnimationFrame(step)
 }
 
