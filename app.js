@@ -31,8 +31,6 @@ function drawFlower (delTheta, k, amplitude, color) {
 
   const arr = new Array(Math.ceil(2 * Math.PI / delTheta)).fill(0).map((val, i) => ((2 * Math.PI * delTheta) * i))
 
-  let scale = chroma.scale(['red', 'white'])
-
   const largestValue = arr[arr.length - 1]
 
   let lastX = null
@@ -44,8 +42,6 @@ function drawFlower (delTheta, k, amplitude, color) {
   arr.forEach(val => {
     const x = amplitude * Math.cos(k * val) * Math.cos(val)
     const y = amplitude * Math.cos(k * val) * Math.sin(val)
-
-    const scaledVal = val / largestValue
 
     if (lastX && lastY) {
       ctx.moveTo(lastX, lastY)
