@@ -6,7 +6,7 @@
  * @param {any} amplitude length of each petal
  * 
  */
-module.exports = function drawFlower(delTheta, k, amplitude, color, rotation) {
+module.exports = function drawFlowerPedals(delTheta, k, amplitude, color, rotation) {
 
   ctx.save()
   ctx.rotate(rotation)
@@ -37,13 +37,70 @@ module.exports = function drawFlower(delTheta, k, amplitude, color, rotation) {
   ctx.restore()
 }
 },{}],2:[function(require,module,exports){
+/**
+ * 
+ * @param {any} height height is the height of the grass straw in pixels
+ * @param {any} wind wind is the amount of wind present (replace with curve?)
+ * @param {any} density density is lines per straw
+ * 
+ */
+
+// It should have more points where the angle is steepest. Doesn't currently. 
+// Actually doens't matter when a lot of points are used but good for optimization later
+
+// Right now curves too smoothly.
+
+function calculateAngle (lengthTotal, lengthSoFar, wind = 3) {
+  const angle = (lengthSoFar / lengthTotal) * (wind / 10) * (Math.PI / 2)
+  if (angle < 0) {
+    return 0
+  } 
+  if (angle > (Math.PI / 2)) {
+    return Math.PI / 2
+  }
+  return angle
+}
+
+
+module.exports = function drawGrassStraw(locationX, locationY, length, density, wind) {
+  ctx.save()
+
+  let lastX = locationX
+  let lastY = locationY
+  ctx.beginPath()
+  ctx.lineWidth = 2
+  ctx.strokeStyle = 'green'
+
+  for (let i = 0; i <= density; i++) {
+    const segmentLength = length / density
+    const lengthToStart = segmentLength * i
+    const angle = calculateAngle(length, lengthToStart, wind)
+
+    const x = (Math.cos(angle + (Math.PI / 2)) * segmentLength) + lastX
+    const y = - (Math.sin(angle + (Math.PI / 2))) * segmentLength + lastY
+
+    ctx.lineTo(x, y)
+    lastX = x
+    lastY = y
+  }
+  
+  ctx.stroke()
+  ctx.restore()
+}
+},{}],3:[function(require,module,exports){
 (function (global){
+console.log('starting...')
 
 var c = document.getElementById("canvas")
 global.ctx = c.getContext("2d")
 var chroma = require('chroma-js')
 const _ = require('lodash')
-const drawFlower = require('./Flower')
+const drawFlowerPedals = require('./FlowerPedals')
+const drawGrassStraw = require('./GrassStraw')
+const { PERIOD } = require('./constants')
+var perlin = require('perlin-noise');
+
+const noise = perlin.generatePerlinNoise(480, 480);
 
 let width = window.innerWidth / 2
 let height = window.innerHeight / 2
@@ -66,7 +123,6 @@ var steps = 0
 let color = getRandHex()
 let k = _.random(2, 11)
 const Sine = (phase) => Math.sin(phase * Math.PI)
-const period = 10000
 let startedAt = null
 let rotation = 0
 let timeDelta = 16
@@ -76,6 +132,8 @@ function precisionRound(number, precision) {
   var factor = Math.pow(10, precision);
   return Math.round(number * factor) / factor;
 }
+
+let wind = 0
 
 function step(timestamp) {
   if (!startedAt) startedAt = timestamp
@@ -87,11 +145,14 @@ function step(timestamp) {
   lastTime = timestamp
 
   const timePassedMS = timestamp - startedAt
-  const phase = (timePassedMS % period) / period
+  const phase = (timePassedMS % PERIOD) / PERIOD
+
+
+  wind = Math.sin(phase * Math.PI) + 1 
   
   rotation = (timeDelta * 0.0007) + rotation
 
-  if (precisionRound(phase, 2) === 0.00 || precisionRound(phase, 2) === 0.01) {
+  if (precisionRound(phase, 2) === 0.00) {
     color = getRandHex()
     k = _.random(2, 11)
   }
@@ -105,14 +166,20 @@ function step(timestamp) {
     amplitude =  (width / 1.7)
   }
   
-  drawFlower(0.005, k, (amplitude * Sine(phase)), color, rotation)
+  drawFlowerPedals(0.005, k, (amplitude * Sine(phase)), color, rotation)
+  drawGrassStraw(100, height, 300, 50, wind)
+  drawGrassStraw(0, height, 300, 50, wind)
   window.requestAnimationFrame(step)
 }
 
 
 step()
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Flower":1,"chroma-js":3,"lodash":4}],3:[function(require,module,exports){
+},{"./FlowerPedals":1,"./GrassStraw":2,"./constants":4,"chroma-js":5,"lodash":6,"perlin-noise":7}],4:[function(require,module,exports){
+module.exports = {
+  PERIOD: 10000,
+}
+},{}],5:[function(require,module,exports){
 
 /**
  * @license
@@ -2876,7 +2943,7 @@ step()
 
 }).call(this);
 
-},{}],4:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -19985,4 +20052,76 @@ step()
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[2]);
+},{}],7:[function(require,module,exports){
+exports.generatePerlinNoise = generatePerlinNoise;
+exports.generateWhiteNoise = generateWhiteNoise;
+
+function generatePerlinNoise(width, height, options) {
+  options = options || {};
+  var octaveCount = options.octaveCount || 4;
+  var amplitude = options.amplitude || 0.1;
+  var persistence = options.persistence || 0.2;
+  var whiteNoise = generateWhiteNoise(width, height);
+
+  var smoothNoiseList = new Array(octaveCount);
+  var i;
+  for (i = 0; i < octaveCount; ++i) {
+    smoothNoiseList[i] = generateSmoothNoise(i);
+  }
+  var perlinNoise = new Array(width * height);
+  var totalAmplitude = 0;
+  // blend noise together
+  for (i = octaveCount - 1; i >= 0; --i) {
+    amplitude *= persistence;
+    totalAmplitude += amplitude;
+
+    for (var j = 0; j < perlinNoise.length; ++j) {
+      perlinNoise[j] = perlinNoise[j] || 0;
+      perlinNoise[j] += smoothNoiseList[i][j] * amplitude;
+    }
+  }
+  // normalization
+  for (i = 0; i < perlinNoise.length; ++i) {
+      perlinNoise[i] /= totalAmplitude;
+  }
+
+  return perlinNoise;
+
+  function generateSmoothNoise(octave) {
+    var noise = new Array(width * height);
+    var samplePeriod = Math.pow(2, octave);
+    var sampleFrequency = 1 / samplePeriod;
+    var noiseIndex = 0;
+    for (var y = 0; y < height; ++y) {
+      var sampleY0 = Math.floor(y / samplePeriod) * samplePeriod;
+      var sampleY1 = (sampleY0 + samplePeriod) % height;
+      var vertBlend = (y - sampleY0) * sampleFrequency;
+      for (var x = 0; x < width; ++x) {
+        var sampleX0 = Math.floor(x / samplePeriod) * samplePeriod;
+        var sampleX1 = (sampleX0 + samplePeriod) % width;
+        var horizBlend = (x - sampleX0) * sampleFrequency;
+
+        // blend top two corners
+        var top = interpolate(whiteNoise[sampleY0 * width + sampleX0], whiteNoise[sampleY1 * width + sampleX0], vertBlend);
+        // blend bottom two corners
+        var bottom = interpolate(whiteNoise[sampleY0 * width + sampleX1], whiteNoise[sampleY1 * width + sampleX1], vertBlend);
+        // final blend
+        noise[noiseIndex] = interpolate(top, bottom, horizBlend);
+        noiseIndex += 1;
+      }
+    }
+    return noise;
+  }
+}
+function generateWhiteNoise(width, height) {
+  var noise = new Array(width * height);
+  for (var i = 0; i < noise.length; ++i) {
+    noise[i] = Math.random();
+  }
+  return noise;
+}
+function interpolate(x0, x1, alpha) {
+  return x0 * (1 - alpha) + alpha * x1;
+}
+
+},{}]},{},[3]);

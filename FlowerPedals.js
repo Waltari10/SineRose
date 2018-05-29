@@ -5,7 +5,7 @@
  * @param {any} amplitude length of each petal
  * 
  */
-module.exports = function drawFlower(delTheta, k, amplitude, color, rotation) {
+module.exports = function drawFlowerPedals(delTheta, k, amplitude, color, rotation) {
 
   ctx.save()
   ctx.rotate(rotation)

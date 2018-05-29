@@ -1,9 +1,15 @@
+console.log('starting...')
 
 var c = document.getElementById("canvas")
 global.ctx = c.getContext("2d")
 var chroma = require('chroma-js')
 const _ = require('lodash')
-const drawFlower = require('./Flower')
+const drawFlowerPedals = require('./FlowerPedals')
+const drawGrassStraw = require('./GrassStraw')
+const { PERIOD } = require('./constants')
+var perlin = require('perlin-noise');
+
+const noise = perlin.generatePerlinNoise(480, 480);
 
 let width = window.innerWidth / 2
 let height = window.innerHeight / 2
@@ -26,7 +32,6 @@ var steps = 0
 let color = getRandHex()
 let k = _.random(2, 11)
 const Sine = (phase) => Math.sin(phase * Math.PI)
-const period = 10000
 let startedAt = null
 let rotation = 0
 let timeDelta = 16
@@ -36,6 +41,8 @@ function precisionRound(number, precision) {
   var factor = Math.pow(10, precision);
   return Math.round(number * factor) / factor;
 }
+
+let wind = 0
 
 function step(timestamp) {
   if (!startedAt) startedAt = timestamp
@@ -47,11 +54,14 @@ function step(timestamp) {
   lastTime = timestamp
 
   const timePassedMS = timestamp - startedAt
-  const phase = (timePassedMS % period) / period
+  const phase = (timePassedMS % PERIOD) / PERIOD
+
+
+  wind = Math.sin(phase * Math.PI) + 1 
   
   rotation = (timeDelta * 0.0007) + rotation
 
-  if (precisionRound(phase, 2) === 0.00 || precisionRound(phase, 2) === 0.01) {
+  if (precisionRound(phase, 2) === 0.00) {
     color = getRandHex()
     k = _.random(2, 11)
   }
@@ -65,7 +75,9 @@ function step(timestamp) {
     amplitude =  (width / 1.7)
   }
   
-  drawFlower(0.005, k, (amplitude * Sine(phase)), color, rotation)
+  drawFlowerPedals(0.005, k, (amplitude * Sine(phase)), color, rotation)
+  drawGrassStraw(100, height, 300, 50, wind)
+  drawGrassStraw(0, height, 300, 50, wind)
   window.requestAnimationFrame(step)
 }
 
