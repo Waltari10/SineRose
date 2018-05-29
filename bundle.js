@@ -1,26 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-
-var c = document.getElementById("canvas")
-var ctx = c.getContext("2d")
-var chroma = require('chroma-js')
-const _ = require('lodash')
-
-let width = window.innerWidth / 2
-let height = window.innerHeight / 2
-
-function getRandHex() {
-  return '#' + Math.floor(Math.random() * 16777215).toString(16);
-}
-
-function resizeCanvas() {
-  width = window.innerWidth / 2
-  height = window.innerHeight / 2
-  ctx.translate(width, height)
-}
-resizeCanvas()
-
-window.addEventListener('resize', resizeCanvas, false)
-
 /**
  * 
  * @param {any} delTheta del_theta is the discrete step size for discretizing the continuous range of angles from 0 to 2 * pi
@@ -28,7 +6,7 @@ window.addEventListener('resize', resizeCanvas, false)
  * @param {any} amplitude length of each petal
  * 
  */
-function drawFlower (delTheta, k, amplitude, color, rotation) {
+module.exports = function drawFlower(delTheta, k, amplitude, color, rotation) {
 
   ctx.save()
   ctx.rotate(rotation)
@@ -48,7 +26,7 @@ function drawFlower (delTheta, k, amplitude, color, rotation) {
 
     if (lastX && lastY) {
       ctx.moveTo(lastX, lastY)
-    } 
+    }
 
     ctx.lineTo(x, y)
     lastX = x
@@ -58,6 +36,30 @@ function drawFlower (delTheta, k, amplitude, color, rotation) {
   ctx.stroke()
   ctx.restore()
 }
+},{}],2:[function(require,module,exports){
+(function (global){
+
+var c = document.getElementById("canvas")
+global.ctx = c.getContext("2d")
+var chroma = require('chroma-js')
+const _ = require('lodash')
+const drawFlower = require('./Flower')
+
+let width = window.innerWidth / 2
+let height = window.innerHeight / 2
+
+function getRandHex() {
+  return '#' + Math.floor(Math.random() * 16777215).toString(16);
+}
+
+function resizeCanvas() {
+  width = window.innerWidth / 2
+  height = window.innerHeight / 2
+  ctx.translate(width, height)
+}
+resizeCanvas()
+
+window.addEventListener('resize', resizeCanvas, false)
 
 var steps = 0
 
@@ -109,7 +111,8 @@ function step(timestamp) {
 
 
 step()
-},{"chroma-js":2,"lodash":3}],2:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./Flower":1,"chroma-js":3,"lodash":4}],3:[function(require,module,exports){
 
 /**
  * @license
@@ -2873,7 +2876,7 @@ step()
 
 }).call(this);
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -19982,4 +19985,4 @@ step()
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[1]);
+},{}]},{},[2]);
