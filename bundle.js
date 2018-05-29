@@ -28,8 +28,10 @@ window.addEventListener('resize', resizeCanvas, false)
  * @param {any} amplitude length of each petal
  * 
  */
-function drawFlower (delTheta, k, amplitude, color) {
+function drawFlower (delTheta, k, amplitude, color, rotation) {
 
+  ctx.save()
+  ctx.rotate(rotation)
   const arr = new Array(Math.ceil(2 * Math.PI / delTheta)).fill(0).map((val, i) => ((2 * Math.PI * delTheta) * i))
 
   const largestValue = arr[arr.length - 1]
@@ -54,6 +56,7 @@ function drawFlower (delTheta, k, amplitude, color) {
   })
   ctx.closePath()
   ctx.stroke()
+  ctx.restore()
 }
 
 var steps = 0
@@ -63,6 +66,9 @@ let k = _.random(2, 11)
 const Sine = (phase) => Math.sin(phase * Math.PI)
 const period = 10000
 let startedAt = null
+let rotation = 0
+let timeDelta = 16
+let lastTime = 0
 
 function precisionRound(number, precision) {
   var factor = Math.pow(10, precision);
@@ -72,8 +78,16 @@ function precisionRound(number, precision) {
 function step(timestamp) {
   if (!startedAt) startedAt = timestamp
 
+  if (lastTime) {
+    timeDelta = timestamp - lastTime
+  }
+
+  lastTime = timestamp
+
   const timePassedMS = timestamp - startedAt
   const phase = (timePassedMS % period) / period
+  
+  rotation = (timeDelta * 0.0007) + rotation
 
   if (precisionRound(phase, 2) === 0.00 || precisionRound(phase, 2) === 0.01) {
     color = getRandHex()
@@ -81,7 +95,7 @@ function step(timestamp) {
   }
 
   ctx.fillStyle = 'white'
-  ctx.fillRect(-width, -height, canvas.width, canvas.height)
+  ctx.fillRect(-canvas.width / 2, (-canvas.height / 2), canvas.width, canvas.height)
   steps++
 
   let amplitude = (height / 1.7)
@@ -89,10 +103,10 @@ function step(timestamp) {
     amplitude =  (width / 1.7)
   }
   
-  ctx.rotate(0.005)
-  drawFlower(0.005, k, (amplitude * Sine(phase)), color)
+  drawFlower(0.005, k, (amplitude * Sine(phase)), color, rotation)
   window.requestAnimationFrame(step)
 }
+
 
 step()
 },{"chroma-js":2,"lodash":3}],2:[function(require,module,exports){
