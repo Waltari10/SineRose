@@ -2,6 +2,7 @@
 var c = document.getElementById("canvas")
 var ctx = c.getContext("2d")
 var chroma = require('chroma-js')
+const _ = require('lodash')
 
 let width = window.innerWidth / 2
 let height = window.innerHeight / 2
@@ -36,43 +37,63 @@ function drawFlower (delTheta, k, amplitude, color) {
 
   let lastX = null
   let lastY = null
+  ctx.beginPath()
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = color
+
   arr.forEach(val => {
     const x = amplitude * Math.cos(k * val) * Math.cos(val)
     const y = amplitude * Math.cos(k * val) * Math.sin(val)
 
     const scaledVal = val / largestValue
 
-    ctx.beginPath()
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = color
-
     if (lastX && lastY) {
       ctx.moveTo(lastX, lastY)
     } 
 
     ctx.lineTo(x, y)
-    ctx.stroke()
     lastX = x
     lastY = y
   })
+  ctx.closePath()
+  ctx.stroke()
 }
 
 var steps = 0
 
-const color = getRandHex()
+let color = getRandHex()
+let k = _.random(2, 11)
+const Sine = (phase) => Math.sin(phase * Math.PI)
+const period = 10000
+let startedAt = null
+
+function precisionRound(number, precision) {
+  var factor = Math.pow(10, precision);
+  return Math.round(number * factor) / factor;
+}
 
 function step(timestamp) {
+  if (!startedAt) startedAt = timestamp
+
+  const timePassedMS = timestamp - startedAt
+  const phase = (timePassedMS % period) / period
+
+  if (precisionRound(phase, 2) === 0.00 || precisionRound(phase, 2) === 0.01) {
+    color = getRandHex()
+    k = _.random(2, 11)
+  }
+
   ctx.fillStyle = 'white'
   ctx.fillRect(-width, -height, canvas.width, canvas.height)
   steps++
 
-  let amplitude = height
+  let amplitude = (height / 1.7)
   if (height > width) {
-    amplitude =  width
+    amplitude =  (width / 1.7)
   }
   
   ctx.rotate(0.005)
-  drawFlower(0.005, 4, amplitude, color)
+  drawFlower(0.005, k, (amplitude * Sine(phase)), color)
   window.requestAnimationFrame(step)
 }
 
