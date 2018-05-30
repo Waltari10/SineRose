@@ -27,7 +27,7 @@ let timePassedMS = 0
 
 
 const flowerPedals = new FlowerPedals(0.005)
-const grassStraw = new GrassStraw(100, height, 300, 50)
+const grassStraw = new GrassStraw(100, height, 300, 10, 1)
 
 function step(timestamp) {
   if (!startedAt) startedAt = timestamp
