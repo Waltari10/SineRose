@@ -65,20 +65,20 @@ function calculateAngle (lengthTotal, lengthSoFar, wind = 3) {
 module.exports = function drawGrassStraw(locationX, locationY, length, density, wind) {
   ctx.save()
 
+  const segmentLength = length / density
+
   let lastX = locationX
-  let lastY = locationY
+  let lastY = locationY + segmentLength
   ctx.beginPath()
   ctx.lineWidth = 2
   ctx.strokeStyle = 'green'
 
   for (let i = 0; i <= density; i++) {
-    const segmentLength = length / density
     const lengthToStart = segmentLength * i
     const angle = calculateAngle(length, lengthToStart, wind)
 
     const x = (Math.cos(angle + (Math.PI / 2)) * segmentLength) + lastX
     const y = - (Math.sin(angle + (Math.PI / 2))) * segmentLength + lastY
-
     ctx.lineTo(x, y)
     lastX = x
     lastY = y
