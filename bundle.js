@@ -129,10 +129,17 @@ const FlowerPedals = require('./FlowerPedals')
 const GrassStraw = require('./GrassStraw')
 const { PERIOD } = require('./constants')
 
+
+const gameObjects = []
+
 global.ctx = c.getContext("2d")
 global.width = window.innerWidth / 2
 global.height = window.innerHeight / 2
 global.wind = 0
+global.instantiate = function(template, args) {
+  gameObjects.push(new template(...args))
+}
+
 
 function resizeCanvas() {
   global.width = window.innerWidth / 2
@@ -151,8 +158,8 @@ let lastTime = 0
 let timePassedMS = 0
 
 
-const flowerPedals = new FlowerPedals(0.005)
-const grassStraw = new GrassStraw(100, height, 300, 10, 1)
+global.instantiate(FlowerPedals, [0.005])
+global.instantiate(GrassStraw, [100, height, 300, 10, 1])
 
 function step(timestamp) {
   if (!startedAt) startedAt = timestamp
@@ -171,14 +178,13 @@ function step(timestamp) {
   ctx.fillRect(-canvas.width / 2, (-canvas.height / 2), canvas.width, canvas.height)
   steps++
 
-  flowerPedals.update()
-  flowerPedals.render()
-  grassStraw.update()
-  grassStraw.render()
+  gameObjects.forEach(go => {
+    go.update()
+    go.render()
+  })
   
   window.requestAnimationFrame(step)
 }
-
 
 step()
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
