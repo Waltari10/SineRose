@@ -1,37 +1,57 @@
-/**
- * 
- * @param {any} delTheta del_theta is the discrete step size for discretizing the continuous range of angles from 0 to 2 * pi
- * @param {any} k  petal coefficient. if k is odd then k is the number of petals. if k is even then k is half the number of petals
- * @param {any} amplitude length of each petal
- * 
- */
-module.exports = function drawFlowerPedals(delTheta, k, amplitude, color, rotation) {
+const _ = require('lodash')
+const chroma = require('chroma-js')
+const { PERIOD } = require('./constants')
+const { getRandHex, sine, precisionRound } = require('./helpers')
 
-  ctx.save()
-  ctx.rotate(rotation)
-  const arr = new Array(Math.ceil(2 * Math.PI / delTheta)).fill(0).map((val, i) => ((2 * Math.PI * delTheta) * i))
+module.exports = class FlowerPedals {
+  constructor(delTheta) {
+    this.delTheta = delTheta
+    this.rotation = 0
+    this.color = getRandHex()
+    this.timePassedMS = 0
+  }
+  update() {
+    this.rotation = (global.timeDelta * 0.0007) + this.rotation
+    this.timePassedMS = this.timePassedMS + global.timeDelta
+    this.phase = (this.timePassedMS % PERIOD) / PERIOD
 
-  const largestValue = arr[arr.length - 1]
-
-  let lastX = null
-  let lastY = null
-  ctx.beginPath()
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = color
-
-  arr.forEach(val => {
-    const x = amplitude * Math.cos(k * val) * Math.cos(val)
-    const y = amplitude * Math.cos(k * val) * Math.sin(val)
-
-    if (lastX && lastY) {
-      ctx.moveTo(lastX, lastY)
+    if (precisionRound(this.phase, 2) === 0.00) {
+      this.color = getRandHex()
+      this.k = _.random(2, 11)
     }
 
-    ctx.lineTo(x, y)
-    lastX = x
-    lastY = y
-  })
-  ctx.closePath()
-  ctx.stroke()
-  ctx.restore()
+    this.amplitude = (global.height / 1.7) * sine(this.phase)
+    if (global.height > global.width) {
+      this.amplitude = (global.width / 1.7) * sine(this.phase)
+    }
+  }
+  render() {
+    ctx.save()
+    ctx.rotate(this.rotation)
+    const arr = new Array(Math.ceil(2 * Math.PI / this.delTheta)).fill(0).map((val, i) => ((2 * Math.PI * this.delTheta) * i))
+
+    const largestValue = arr[arr.length - 1]
+
+    let lastX = null
+    let lastY = null
+    ctx.beginPath()
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = this.color
+
+    arr.forEach(val => {
+      const x = this.amplitude * Math.cos(this.k * val) * Math.cos(val)
+      const y = this.amplitude * Math.cos(this.k * val) * Math.sin(val)
+
+      if (lastX && lastY) {
+        ctx.moveTo(lastX, lastY)
+      }
+
+      ctx.lineTo(x, y)
+      lastX = x
+      lastY = y
+    })
+    ctx.closePath()
+    ctx.stroke()
+    ctx.restore()
+  }
 }
