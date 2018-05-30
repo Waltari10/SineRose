@@ -59,19 +59,7 @@ module.exports = class FlowerPedals {
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./constants":4,"./helpers":5,"chroma-js":6,"lodash":7}],2:[function(require,module,exports){
-/**
- * 
- * @param {any} height height is the height of the grass straw in pixels
- * @param {any} wind wind is the amount of wind present (replace with curve?)
- * @param {any} density density is lines per straw
- * 
- */
-
-// It should have more points where the angle is steepest. Doesn't currently. 
-// Actually doens't matter when a lot of points are used but good for optimization later
-
-// Right now curves too smoothly.
-
+(function (global){
 function calculateAngle (lengthTotal, lengthSoFar, wind = 3) {
   const angle = (lengthSoFar / lengthTotal) * (wind / 10) * (Math.PI / 2)
   if (angle < 0) {
@@ -84,42 +72,54 @@ function calculateAngle (lengthTotal, lengthSoFar, wind = 3) {
 }
 
 
-module.exports = function drawGrassStraw(locationX, locationY, length, density, wind) {
-  ctx.save()
-
-  const segmentLength = length / density
-
-  let lastX = locationX
-  let lastY = locationY + segmentLength
-  ctx.beginPath()
-  ctx.lineWidth = 2
-  ctx.strokeStyle = 'green'
-
-  for (let i = 0; i <= density; i++) {
-    const lengthToStart = segmentLength * i
-    const angle = calculateAngle(length, lengthToStart, wind)
-
-    const x = (Math.cos(angle + (Math.PI / 2)) * segmentLength) + lastX
-    const y = - (Math.sin(angle + (Math.PI / 2))) * segmentLength + lastY
-    ctx.lineTo(x, y)
-    lastX = x
-    lastY = y
+module.exports = class GrassStraw {
+  constructor(locationX, locationY, length, density) {
+    this.locationX = locationX
+    this.locationY = locationY
+    this.length = length
+    this.density = density
+    this.segmentLength = this.length / this.density
   }
-  
-  ctx.stroke()
-  ctx.restore()
+  update() {
+
+  }
+  render() {
+    ctx.save()
+
+    let lastX = this.locationX
+    let lastY = this.locationY + this.segmentLength
+    ctx.beginPath()
+    ctx.lineWidth = 2
+    ctx.strokeStyle = 'green'
+
+    for (let i = 0; i <= this.density; i++) {
+      const lengthToStart = this.segmentLength * i
+      const angle = calculateAngle(this.length, lengthToStart, global.wind)
+
+      const x = (Math.cos(angle + (Math.PI / 2)) * this.segmentLength) + lastX
+      const y = - (Math.sin(angle + (Math.PI / 2))) * this.segmentLength + lastY
+      ctx.lineTo(x, y)
+      lastX = x
+      lastY = y
+    }
+
+    ctx.stroke()
+    ctx.restore()
+  }
 }
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],3:[function(require,module,exports){
 (function (global){
 const c = document.getElementById("canvas")
 const _ = require('lodash')
 const FlowerPedals = require('./FlowerPedals')
-const drawGrassStraw = require('./GrassStraw')
+const GrassStraw = require('./GrassStraw')
 const { PERIOD } = require('./constants')
 
 global.ctx = c.getContext("2d")
 global.width = window.innerWidth / 2
 global.height = window.innerHeight / 2
+global.wind = 0
 
 function resizeCanvas() {
   global.width = window.innerWidth / 2
@@ -135,17 +135,11 @@ var steps = 0
 let startedAt = null
 global.timeDelta = 16
 let lastTime = 0
+let timePassedMS = 0
 
-let wind = 0
-
-// const arr = ['timestamp', 'phase', 'wind']
-// setInterval(() => {
-//   const keys = ['timestamp', 'phase', 'wind']
-//   const csv = `${keys.join(',')}\n${arr.map(row => keys.map(key => row[key] || '').join(',')).join('\n')}`
-//   console.log(csv)
-// }, 10000)
 
 const flowerPedals = new FlowerPedals(0.005)
+const grassStraw = new GrassStraw(100, height, 300, 50)
 
 function step(timestamp) {
   if (!startedAt) startedAt = timestamp
@@ -153,11 +147,12 @@ function step(timestamp) {
   if (lastTime) {
     global.timeDelta = timestamp - lastTime
   }
+  timePassedMS = global.timeDelta + timePassedMS
 
   lastTime = timestamp
 
-  const phase = (this.timePassedMS % PERIOD) / PERIOD
-  wind = Math.sin(phase * 2 * Math.PI) + 1
+  const phase = (timePassedMS % PERIOD) / PERIOD
+  global.wind = Math.sin(phase * 2 * Math.PI) + 1
 
   ctx.fillStyle = 'white'
   ctx.fillRect(-canvas.width / 2, (-canvas.height / 2), canvas.width, canvas.height)
@@ -165,9 +160,9 @@ function step(timestamp) {
 
   flowerPedals.update()
   flowerPedals.render()
+  grassStraw.update()
+  grassStraw.render()
   
-  drawGrassStraw(100, height, 300, 50, wind)
-  drawGrassStraw(0, height, 300, 50, wind)
   window.requestAnimationFrame(step)
 }
 
