@@ -22,13 +22,14 @@ module.exports = class FlowerPedals {
       this.k = _.random(2, 11)
     }
 
-    this.amplitude = (global.height / 1.7) * sine(this.phase)
+    this.amplitude = ((global.height / 2) / 1.7) * sine(this.phase)
     if (global.height > global.width) {
-      this.amplitude = (global.width / 1.7) * sine(this.phase)
+      this.amplitude = ((global.width / 2) / 1.7) * sine(this.phase)
     }
   }
   render() {
     ctx.save()
+    ctx.translate(global.width / 2, global.height / 2)
     ctx.rotate(this.rotation)
     const arr = new Array(Math.ceil(2 * Math.PI / this.delTheta)).fill(0).map((val, i) => ((2 * Math.PI * this.delTheta) * i))
 
@@ -84,7 +85,6 @@ module.exports = class GrassStraw {
     this.segmentLength = this.length / this.density
     this.width = width
     this.noiseX = 0
-    // this.noiseY = 0
   }
   update() {
     this.noise = simplex.noise2D(this.noiseX / 100, 0) / 10
@@ -101,8 +101,8 @@ module.exports = class GrassStraw {
       ctx.beginPath()
       const lengthToStart = this.segmentLength * i
       let lineWidth = ((this.length - lengthToStart) / this.length) * this.width
-      if (lineWidth < 0.1) {
-        lineWidth = 0.1
+      if (lineWidth < 0.2) {
+        lineWidth = 0.2
       }
       ctx.lineWidth = lineWidth
       const angle = calculateAngle(this.length, lengthToStart, global.wind + this.noise)
@@ -140,11 +140,10 @@ global.instantiate = function(template, args) {
   gameObjects.push(new template(...args))
 }
 
-
 function resizeCanvas() {
-  global.width = window.innerWidth / 2
-  global.height = (window.innerHeight / 2)
-  ctx.translate(width, height)
+  global.width = window.innerWidth
+  global.height = window.innerHeight
+  ctx.translate(0, 0)
 }
 
 resizeCanvas()
@@ -157,9 +156,28 @@ global.timeDelta = 16
 let lastTime = 0
 let timePassedMS = 0
 
+const delta = []
+setInterval(() => {
+  console.log(delta)
+}, 1000)
 
+const SimplexNoise = require('simplex-noise')
+
+const simplex = new SimplexNoise()
+
+let noiseX = 0
+
+
+
+// create grass field
+for (let i = 0; i < 600; i++) {
+
+  const noise = simplex.noise2D(noiseX / 100, 0)
+  noiseX++
+
+  global.instantiate(GrassStraw, [Math.random() * (width + 50), height, (noise * 100) + 200, 7, noise + 0.5])
+}
 global.instantiate(FlowerPedals, [0.005])
-global.instantiate(GrassStraw, [100, height, 300, 10, 1])
 
 function step(timestamp) {
   if (!startedAt) startedAt = timestamp
@@ -167,15 +185,17 @@ function step(timestamp) {
   if (lastTime) {
     global.timeDelta = timestamp - lastTime
   }
+
+  delta.push(global.timeDelta)
   timePassedMS = global.timeDelta + timePassedMS
 
   lastTime = timestamp
 
   const phase = (timePassedMS % PERIOD) / PERIOD
-  global.wind = Math.sin(phase * 2 * Math.PI) + 1
+  global.wind = Math.sin(phase * 2 * Math.PI) + 2
 
   ctx.fillStyle = 'white'
-  ctx.fillRect(-canvas.width / 2, (-canvas.height / 2), canvas.width, canvas.height)
+  ctx.fillRect(0, 0, width, height)
   steps++
 
   gameObjects.forEach(go => {
@@ -188,7 +208,7 @@ function step(timestamp) {
 
 step()
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./FlowerPedals":1,"./GrassStraw":2,"./constants":4,"lodash":7}],4:[function(require,module,exports){
+},{"./FlowerPedals":1,"./GrassStraw":2,"./constants":4,"lodash":7,"simplex-noise":8}],4:[function(require,module,exports){
 module.exports = {
   PERIOD: 10000,
 }

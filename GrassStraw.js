@@ -22,7 +22,6 @@ module.exports = class GrassStraw {
     this.segmentLength = this.length / this.density
     this.width = width
     this.noiseX = 0
-    // this.noiseY = 0
   }
   update() {
     this.noise = simplex.noise2D(this.noiseX / 100, 0) / 10
@@ -39,8 +38,8 @@ module.exports = class GrassStraw {
       ctx.beginPath()
       const lengthToStart = this.segmentLength * i
       let lineWidth = ((this.length - lengthToStart) / this.length) * this.width
-      if (lineWidth < 0.1) {
-        lineWidth = 0.1
+      if (lineWidth < 0.2) {
+        lineWidth = 0.2
       }
       ctx.lineWidth = lineWidth
       const angle = calculateAngle(this.length, lengthToStart, global.wind + this.noise)

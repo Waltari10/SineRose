@@ -20,13 +20,14 @@ module.exports = class FlowerPedals {
       this.k = _.random(2, 11)
     }
 
-    this.amplitude = (global.height / 1.7) * sine(this.phase)
+    this.amplitude = ((global.height / 2) / 1.7) * sine(this.phase)
     if (global.height > global.width) {
-      this.amplitude = (global.width / 1.7) * sine(this.phase)
+      this.amplitude = ((global.width / 2) / 1.7) * sine(this.phase)
     }
   }
   render() {
     ctx.save()
+    ctx.translate(global.width / 2, global.height / 2)
     ctx.rotate(this.rotation)
     const arr = new Array(Math.ceil(2 * Math.PI / this.delTheta)).fill(0).map((val, i) => ((2 * Math.PI * this.delTheta) * i))
 
