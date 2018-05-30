@@ -98,9 +98,10 @@ const _ = require('lodash')
 const drawFlowerPedals = require('./FlowerPedals')
 const drawGrassStraw = require('./GrassStraw')
 const { PERIOD } = require('./constants')
-var perlin = require('perlin-noise');
+// var perlin = require('perlin-noise');
+const fs = require('fs')
 
-const noise = perlin.generatePerlinNoise(480, 480);
+// const noise = perlin.generatePerlinNoise(480, 480);
 
 let width = window.innerWidth / 2
 let height = window.innerHeight / 2
@@ -111,7 +112,7 @@ function getRandHex() {
 
 function resizeCanvas() {
   width = window.innerWidth / 2
-  height = window.innerHeight / 2
+  height = (window.innerHeight / 2)
   ctx.translate(width, height)
 }
 resizeCanvas()
@@ -135,6 +136,20 @@ function precisionRound(number, precision) {
 
 let wind = 0
 
+function easeInOutSine (t) {
+  return (1 + Math.sin(Math.PI * t - Math.PI / 2)) / 2;
+}
+
+function easeInOutQuad (t) { return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t }
+
+const arr = ['timestamp', 'phase', 'wind']
+
+// setInterval(() => {
+//   const keys = ['timestamp', 'phase', 'wind']
+//   const csv = `${keys.join(',')}\n${arr.map(row => keys.map(key => row[key] || '').join(',')).join('\n')}`
+//   console.log(csv)
+// }, 10000)
+
 function step(timestamp) {
   if (!startedAt) startedAt = timestamp
 
@@ -148,7 +163,9 @@ function step(timestamp) {
   const phase = (timePassedMS % PERIOD) / PERIOD
 
 
-  wind = Math.sin(phase * Math.PI) + 1 
+  wind = Math.sin(phase * 2 * Math.PI) + 1
+  
+  arr.push({timestamp, phase, wind})
   
   rotation = (timeDelta * 0.0007) + rotation
 
@@ -175,7 +192,7 @@ function step(timestamp) {
 
 step()
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./FlowerPedals":1,"./GrassStraw":2,"./constants":4,"chroma-js":5,"lodash":6,"perlin-noise":7}],4:[function(require,module,exports){
+},{"./FlowerPedals":1,"./GrassStraw":2,"./constants":4,"chroma-js":5,"fs":7,"lodash":6}],4:[function(require,module,exports){
 module.exports = {
   PERIOD: 10000,
 }
@@ -20053,75 +20070,5 @@ module.exports = {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],7:[function(require,module,exports){
-exports.generatePerlinNoise = generatePerlinNoise;
-exports.generateWhiteNoise = generateWhiteNoise;
-
-function generatePerlinNoise(width, height, options) {
-  options = options || {};
-  var octaveCount = options.octaveCount || 4;
-  var amplitude = options.amplitude || 0.1;
-  var persistence = options.persistence || 0.2;
-  var whiteNoise = generateWhiteNoise(width, height);
-
-  var smoothNoiseList = new Array(octaveCount);
-  var i;
-  for (i = 0; i < octaveCount; ++i) {
-    smoothNoiseList[i] = generateSmoothNoise(i);
-  }
-  var perlinNoise = new Array(width * height);
-  var totalAmplitude = 0;
-  // blend noise together
-  for (i = octaveCount - 1; i >= 0; --i) {
-    amplitude *= persistence;
-    totalAmplitude += amplitude;
-
-    for (var j = 0; j < perlinNoise.length; ++j) {
-      perlinNoise[j] = perlinNoise[j] || 0;
-      perlinNoise[j] += smoothNoiseList[i][j] * amplitude;
-    }
-  }
-  // normalization
-  for (i = 0; i < perlinNoise.length; ++i) {
-      perlinNoise[i] /= totalAmplitude;
-  }
-
-  return perlinNoise;
-
-  function generateSmoothNoise(octave) {
-    var noise = new Array(width * height);
-    var samplePeriod = Math.pow(2, octave);
-    var sampleFrequency = 1 / samplePeriod;
-    var noiseIndex = 0;
-    for (var y = 0; y < height; ++y) {
-      var sampleY0 = Math.floor(y / samplePeriod) * samplePeriod;
-      var sampleY1 = (sampleY0 + samplePeriod) % height;
-      var vertBlend = (y - sampleY0) * sampleFrequency;
-      for (var x = 0; x < width; ++x) {
-        var sampleX0 = Math.floor(x / samplePeriod) * samplePeriod;
-        var sampleX1 = (sampleX0 + samplePeriod) % width;
-        var horizBlend = (x - sampleX0) * sampleFrequency;
-
-        // blend top two corners
-        var top = interpolate(whiteNoise[sampleY0 * width + sampleX0], whiteNoise[sampleY1 * width + sampleX0], vertBlend);
-        // blend bottom two corners
-        var bottom = interpolate(whiteNoise[sampleY0 * width + sampleX1], whiteNoise[sampleY1 * width + sampleX1], vertBlend);
-        // final blend
-        noise[noiseIndex] = interpolate(top, bottom, horizBlend);
-        noiseIndex += 1;
-      }
-    }
-    return noise;
-  }
-}
-function generateWhiteNoise(width, height) {
-  var noise = new Array(width * height);
-  for (var i = 0; i < noise.length; ++i) {
-    noise[i] = Math.random();
-  }
-  return noise;
-}
-function interpolate(x0, x1, alpha) {
-  return x0 * (1 - alpha) + alpha * x1;
-}
 
 },{}]},{},[3]);

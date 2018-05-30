@@ -7,9 +7,10 @@ const _ = require('lodash')
 const drawFlowerPedals = require('./FlowerPedals')
 const drawGrassStraw = require('./GrassStraw')
 const { PERIOD } = require('./constants')
-var perlin = require('perlin-noise');
+// var perlin = require('perlin-noise');
+const fs = require('fs')
 
-const noise = perlin.generatePerlinNoise(480, 480);
+// const noise = perlin.generatePerlinNoise(480, 480);
 
 let width = window.innerWidth / 2
 let height = window.innerHeight / 2
@@ -20,7 +21,7 @@ function getRandHex() {
 
 function resizeCanvas() {
   width = window.innerWidth / 2
-  height = window.innerHeight / 2
+  height = (window.innerHeight / 2)
   ctx.translate(width, height)
 }
 resizeCanvas()
@@ -44,6 +45,20 @@ function precisionRound(number, precision) {
 
 let wind = 0
 
+function easeInOutSine (t) {
+  return (1 + Math.sin(Math.PI * t - Math.PI / 2)) / 2;
+}
+
+function easeInOutQuad (t) { return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t }
+
+const arr = ['timestamp', 'phase', 'wind']
+
+// setInterval(() => {
+//   const keys = ['timestamp', 'phase', 'wind']
+//   const csv = `${keys.join(',')}\n${arr.map(row => keys.map(key => row[key] || '').join(',')).join('\n')}`
+//   console.log(csv)
+// }, 10000)
+
 function step(timestamp) {
   if (!startedAt) startedAt = timestamp
 
@@ -57,7 +72,9 @@ function step(timestamp) {
   const phase = (timePassedMS % PERIOD) / PERIOD
 
 
-  wind = Math.sin(phase * Math.PI) + 1 
+  wind = Math.sin(phase * 2 * Math.PI) + 1
+  
+  arr.push({timestamp, phase, wind})
   
   rotation = (timeDelta * 0.0007) + rotation
 
