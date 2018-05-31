@@ -9,21 +9,25 @@ module.exports = class FlowerPedals {
     this.rotation = 0
     this.color = getRandHex()
     this.timePassedMS = 0
+    this.k = _.random(2, 11)
   }
   update() {
     this.rotation = (global.timeDelta * 0.0007) + this.rotation
     this.timePassedMS = this.timePassedMS + global.timeDelta
     this.phase = (this.timePassedMS % PERIOD) / PERIOD
 
-    if (precisionRound(this.phase, 2) === 0.00) {
+    if (precisionRound(this.phase, 2) === 0.5) {
       this.color = getRandHex()
       this.k = _.random(2, 11)
     }
 
-    this.amplitude = ((global.height / 2) / 1.7) * sine(this.phase)
+    const smoothing = (Math.cos(this.phase * Math.PI * 2) + 1 ) / 2 // between 0 and 1
+
+    this.amplitude = ((global.height / 2) / 1.7) * smoothing
     if (global.height > global.width) {
-      this.amplitude = ((global.width / 2) / 1.7) * sine(this.phase)
+      this.amplitude = ((global.width / 2) / 1.7) * smoothing
     }
+
   }
   render() {
     ctx.save()
