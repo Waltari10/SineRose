@@ -31,10 +31,6 @@ global.timeDelta = 16
 let lastTime = 0
 let timePassedMS = 0
 
-const delta = []
-setInterval(() => {
-  console.log(delta)
-}, 1000)
 
 const SimplexNoise = require('simplex-noise')
 
@@ -61,7 +57,6 @@ function step(timestamp) {
     global.timeDelta = timestamp - lastTime
   }
 
-  delta.push(global.timeDelta)
   timePassedMS = global.timeDelta + timePassedMS
 
   lastTime = timestamp

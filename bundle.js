@@ -74,7 +74,6 @@ function calculateAngle (lengthTotal, lengthSoFar, wind = 3) {
   return angle
 }
 
-const simplex = new SimplexNoise()
 
 module.exports = class GrassStraw {
   constructor(locationX, locationY, length, density, width) {
@@ -85,9 +84,11 @@ module.exports = class GrassStraw {
     this.segmentLength = this.length / this.density
     this.width = width
     this.noiseX = 0
+
+    this.simplex = new SimplexNoise()
   }
   update() {
-    this.noise = simplex.noise2D(this.noiseX / 100, 0) / 10
+    this.noise = this.simplex.noise2D(this.noiseX / 50, 0) / 10
     this.noiseX++
   }
   render() {
@@ -156,10 +157,6 @@ global.timeDelta = 16
 let lastTime = 0
 let timePassedMS = 0
 
-const delta = []
-setInterval(() => {
-  console.log(delta)
-}, 1000)
 
 const SimplexNoise = require('simplex-noise')
 
@@ -186,7 +183,6 @@ function step(timestamp) {
     global.timeDelta = timestamp - lastTime
   }
 
-  delta.push(global.timeDelta)
   timePassedMS = global.timeDelta + timePassedMS
 
   lastTime = timestamp
