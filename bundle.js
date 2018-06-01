@@ -104,8 +104,8 @@ module.exports = class GrassStraw {
       ctx.beginPath()
       const lengthToStart = this.segmentLength * i
       let lineWidth = ((this.length - lengthToStart) / this.length) * this.width
-      if (lineWidth < 0.2) {
-        lineWidth = 0.2
+      if (lineWidth < 0.1) {
+        lineWidth = 0.1
       }
       ctx.lineWidth = lineWidth
       const angle = calculateAngle(this.length, lengthToStart, global.wind + this.noise)
