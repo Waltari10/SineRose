@@ -76,7 +76,7 @@ function calculateAngle (lengthTotal, lengthSoFar, wind = 3) {
 
 
 module.exports = class GrassStraw {
-  constructor(locationX, locationY, length, density, width) {
+  constructor(locationX, locationY, length, density, width, rotation = 0) {
     this.locationX = locationX
     this.locationY = locationY
     this.length = length
@@ -84,7 +84,7 @@ module.exports = class GrassStraw {
     this.segmentLength = this.length / this.density
     this.width = width
     this.noiseX = 0
-
+    this.rotation = rotation
     this.simplex = new SimplexNoise()
   }
   update() {
@@ -93,9 +93,11 @@ module.exports = class GrassStraw {
   }
   render() {
     ctx.save()
+    ctx.translate(this.locationX, this.locationY)
+    ctx.rotate(this.rotation)
 
-    let lastX = this.locationX
-    let lastY = this.locationY + this.segmentLength
+    let lastX = 0
+    let lastY = 0 + this.segmentLength
     ctx.strokeStyle = 'green'
 
     for (let i = 0; i <= this.density; i++) {
@@ -172,7 +174,14 @@ for (let i = 0; i < 600; i++) {
   const noise = simplex.noise2D(noiseX / 100, 0)
   noiseX++
 
-  global.instantiate(GrassStraw, [Math.random() * (width + 50), height, (noise * 100) + 200, 7, noise + 0.5])
+  global.instantiate(GrassStraw, [
+    Math.random() * (width + 50),
+    height, (noise * 100) + 200, 
+    7, 
+    noise + 0.5,
+    ((noise * 9) - 4.5) * Math.PI / 180,
+  ],
+  )
 }
 global.instantiate(FlowerPedals, [0.005])
 

@@ -46,7 +46,14 @@ for (let i = 0; i < 600; i++) {
   const noise = simplex.noise2D(noiseX / 100, 0)
   noiseX++
 
-  global.instantiate(GrassStraw, [Math.random() * (width + 50), height, (noise * 100) + 200, 7, noise + 0.5])
+  global.instantiate(GrassStraw, [
+    Math.random() * (width + 50),
+    height, (noise * 100) + 200, 
+    7, 
+    noise + 0.5,
+    ((noise * 9) - 4.5) * Math.PI / 180,
+  ],
+  )
 }
 global.instantiate(FlowerPedals, [0.005])
 

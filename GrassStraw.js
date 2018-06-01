@@ -13,7 +13,7 @@ function calculateAngle (lengthTotal, lengthSoFar, wind = 3) {
 
 
 module.exports = class GrassStraw {
-  constructor(locationX, locationY, length, density, width) {
+  constructor(locationX, locationY, length, density, width, rotation = 0) {
     this.locationX = locationX
     this.locationY = locationY
     this.length = length
@@ -21,7 +21,7 @@ module.exports = class GrassStraw {
     this.segmentLength = this.length / this.density
     this.width = width
     this.noiseX = 0
-
+    this.rotation = rotation
     this.simplex = new SimplexNoise()
   }
   update() {
@@ -30,9 +30,11 @@ module.exports = class GrassStraw {
   }
   render() {
     ctx.save()
+    ctx.translate(this.locationX, this.locationY)
+    ctx.rotate(this.rotation)
 
-    let lastX = this.locationX
-    let lastY = this.locationY + this.segmentLength
+    let lastX = 0
+    let lastY = 0 + this.segmentLength
     ctx.strokeStyle = 'green'
 
     for (let i = 0; i <= this.density; i++) {
